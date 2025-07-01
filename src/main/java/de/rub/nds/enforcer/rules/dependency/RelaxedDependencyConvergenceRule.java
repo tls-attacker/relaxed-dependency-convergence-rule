@@ -120,7 +120,9 @@ public class RelaxedDependencyConvergenceRule extends AbstractEnforcerRule {
                                 + ":"
                                 + artifact.getArtifactId()
                                 + ":"
-                                + artifact.getVersion());
+                                + (current.getPremanagedVersion() != null
+                                        ? current.getPremanagedVersion()
+                                        : artifact.getVersion()));
             }
             current = current.getParent();
         }
