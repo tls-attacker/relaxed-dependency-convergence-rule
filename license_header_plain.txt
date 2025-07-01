@@ -1,0 +1,7 @@
+/*
+ * Relaxed Dependency Convergence Rule - A custom enforcer plugin to enforce major version convergence
+ *
+ * Ruhr University Bochum, Paderborn University, Technology Innovation Institute, and Hackmanit GmbH
+ *
+ * Licensed under Apache License 2.0 http://www.apache.org/licenses/LICENSE-2.0
+ */

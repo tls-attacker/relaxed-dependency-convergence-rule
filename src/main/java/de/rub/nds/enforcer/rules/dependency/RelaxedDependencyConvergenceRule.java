@@ -1,5 +1,15 @@
+/*
+ * Relaxed Dependency Convergence Rule - A custom enforcer plugin to enforce major version convergence
+ *
+ * Ruhr University Bochum, Paderborn University, Technology Innovation Institute, and Hackmanit GmbH
+ *
+ * Licensed under Apache License 2.0 http://www.apache.org/licenses/LICENSE-2.0
+ */
 package de.rub.nds.enforcer.rules.dependency;
 
+import java.util.*;
+import javax.inject.Inject;
+import javax.inject.Named;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.enforcer.rule.api.AbstractEnforcerRule;
 import org.apache.maven.enforcer.rule.api.EnforcerRuleError;
@@ -8,35 +18,29 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.DefaultProjectBuildingRequest;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectBuildingRequest;
-import org.apache.maven.rtinfo.RuntimeInformation;
 import org.apache.maven.shared.dependency.graph.*;
 import org.apache.maven.shared.dependency.graph.traversal.CollectingDependencyNodeVisitor;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.*;
 
 @Named("relaxedDependencyConvergence")
 public class RelaxedDependencyConvergenceRule extends AbstractEnforcerRule {
 
-    @Inject
-    private MavenProject project;
+    @Inject private MavenProject project;
 
-    @Inject
-    private MavenSession session;
+    @Inject private MavenSession session;
 
-    @Inject
-    private DependencyCollectorBuilder dependencyCollectorBuilder;
+    @Inject private DependencyCollectorBuilder dependencyCollectorBuilder;
 
     @Override
     public void execute() throws EnforcerRuleException {
         // Collect major versions of all dependencies
         Map<String, Set<String>> majorVersions = new HashMap<>();
 
-        ProjectBuildingRequest buildingRequest = new DefaultProjectBuildingRequest(session.getProjectBuildingRequest());
+        ProjectBuildingRequest buildingRequest =
+                new DefaultProjectBuildingRequest(session.getProjectBuildingRequest());
         buildingRequest.setProject(project);
         try {
-            DependencyNode rootNode = dependencyCollectorBuilder.collectDependencyGraph(buildingRequest, null);
+            DependencyNode rootNode =
+                    dependencyCollectorBuilder.collectDependencyGraph(buildingRequest, null);
             collectMajorVersions(rootNode, majorVersions);
         } catch (DependencyCollectorBuilderException e) {
             throw new EnforcerRuleError(e);
@@ -52,7 +56,8 @@ public class RelaxedDependencyConvergenceRule extends AbstractEnforcerRule {
 
         // Throw if at least one major version conflict has been detected
         if (!conflicts.isEmpty()) {
-            throw new EnforcerRuleException("Major version conflicts detected:\n" + String.join("\n", conflicts));
+            throw new EnforcerRuleException(
+                    "Major version conflicts detected:\n" + String.join("\n", conflicts));
         }
     }
 
@@ -66,7 +71,8 @@ public class RelaxedDependencyConvergenceRule extends AbstractEnforcerRule {
             }
             String key = artifact.getGroupId() + ":" + artifact.getArtifactId();
             String major;
-            if (node.getPremanagedVersion() != null && !isVersionRange(node.getPremanagedVersion())) {
+            if (node.getPremanagedVersion() != null
+                    && !isVersionRange(node.getPremanagedVersion())) {
                 major = extractMajorVersion(node.getPremanagedVersion());
             } else {
                 major = extractMajorVersion(artifact.getVersion());
@@ -84,7 +90,10 @@ public class RelaxedDependencyConvergenceRule extends AbstractEnforcerRule {
     }
 
     private boolean isVersionRange(String version) {
-        return version.contains("[") || version.contains("]") || version.contains("(") || version.contains(")");
+        return version.contains("[")
+                || version.contains("]")
+                || version.contains("(")
+                || version.contains(")");
     }
 
     @Override
