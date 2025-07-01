@@ -38,26 +38,30 @@ public class RelaxedDependencyConvergenceRule extends AbstractEnforcerRule {
         ProjectBuildingRequest buildingRequest =
                 new DefaultProjectBuildingRequest(session.getProjectBuildingRequest());
         buildingRequest.setProject(project);
+        DependencyNode rootNode;
         try {
-            DependencyNode rootNode =
-                    dependencyCollectorBuilder.collectDependencyGraph(buildingRequest, null);
+            rootNode = dependencyCollectorBuilder.collectDependencyGraph(buildingRequest, null);
             collectMajorVersions(rootNode, majorVersions);
         } catch (DependencyCollectorBuilderException e) {
             throw new EnforcerRuleError(e);
         }
 
         // Check for major version conflicts (i.e., set size > 1)
-        List<String> conflicts = new ArrayList<>();
+        List<String> conflictMessage = new ArrayList<>();
         for (Map.Entry<String, Set<String>> entry : majorVersions.entrySet()) {
             if (entry.getValue().size() > 1) {
-                conflicts.add(entry.getKey() + " -> major versions: " + entry.getValue());
+                conflictMessage.add(entry.getKey() + " -> major versions: " + entry.getValue());
+                List<String> paths = collectDependencyPaths(rootNode, entry.getKey());
+                for (String path : paths) {
+                    conflictMessage.add("  " + path);
+                }
             }
         }
 
         // Throw if at least one major version conflict has been detected
-        if (!conflicts.isEmpty()) {
+        if (!conflictMessage.isEmpty()) {
             throw new EnforcerRuleException(
-                    "Major version conflicts detected:\n" + String.join("\n", conflicts));
+                    "Major version conflicts detected:\n" + String.join("\n", conflictMessage));
         }
     }
 
@@ -81,6 +85,43 @@ public class RelaxedDependencyConvergenceRule extends AbstractEnforcerRule {
                 versions.computeIfAbsent(key, k -> new HashSet<>()).add(major);
             }
         }
+    }
+
+    private List<String> collectDependencyPaths(DependencyNode rootNode, String dependencyKey) {
+        List<String> paths = new ArrayList<>();
+        CollectingDependencyNodeVisitor visitor = new CollectingDependencyNodeVisitor();
+        rootNode.accept(visitor);
+        for (DependencyNode node : visitor.getNodes()) {
+            Artifact artifact = node.getArtifact();
+            if (artifact != null
+                    && (artifact.getGroupId() + ":" + artifact.getArtifactId())
+                            .equals(dependencyKey)) {
+                paths.add(buildDependencyPath(node));
+            }
+        }
+        return paths;
+    }
+
+    private String buildDependencyPath(DependencyNode node) {
+        StringBuilder builder = new StringBuilder();
+        DependencyNode current = node;
+        while (current != null) {
+            if (builder.length() > 0) {
+                builder.insert(0, " -> ");
+            }
+            Artifact artifact = current.getArtifact();
+            if (artifact != null) {
+                builder.insert(
+                        0,
+                        artifact.getGroupId()
+                                + ":"
+                                + artifact.getArtifactId()
+                                + ":"
+                                + artifact.getVersion());
+            }
+            current = current.getParent();
+        }
+        return builder.toString();
     }
 
     private String extractMajorVersion(String version) {
