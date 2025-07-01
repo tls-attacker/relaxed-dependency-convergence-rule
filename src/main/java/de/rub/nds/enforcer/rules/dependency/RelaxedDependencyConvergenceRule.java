@@ -30,6 +30,8 @@ public class RelaxedDependencyConvergenceRule extends AbstractEnforcerRule {
 
     @Inject private DependencyCollectorBuilder dependencyCollectorBuilder;
 
+    private List<String> exclusions;
+
     @Override
     public void execute() throws EnforcerRuleException {
         // Collect major versions of all dependencies
@@ -49,7 +51,8 @@ public class RelaxedDependencyConvergenceRule extends AbstractEnforcerRule {
         // Check for major version conflicts (i.e., set size > 1)
         List<String> conflictMessage = new ArrayList<>();
         for (Map.Entry<String, Set<String>> entry : majorVersions.entrySet()) {
-            if (entry.getValue().size() > 1) {
+            if (entry.getValue().size() > 1
+                    && (exclusions == null || !exclusions.contains(entry.getKey()))) {
                 conflictMessage.add(entry.getKey() + " -> major versions: " + entry.getValue());
                 List<String> paths = collectDependencyPaths(rootNode, entry.getKey());
                 for (String path : paths) {
