@@ -55,7 +55,7 @@
 
     <properties>
         <enforcer.api.version>3.5.0</enforcer.api.version>
-        <maven.version>3.6.3</maven.version>
+        <maven.version>3.9.10</maven.version>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
