@@ -4,7 +4,7 @@
 
     <groupId>de.rub.nds</groupId>
     <artifactId>relaxed-dependency-convergence-rule</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2-SNAPSHOT</version>
 
     <name>Relaxed Dependency Convergence Rule</name>
     <description>A custom maven enforcer rule that works similar to dependencyConvergence but is limited to contradicting major versions</description>
@@ -36,7 +36,7 @@
     <scm>
         <connection>scm:git:https://github.com/tls-attacker/relaxed-dependency-convergence-rule.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/tls-attacker/relaxed-dependency-convergence-rule.git</developerConnection>
-        <tag>v1.0.1</tag>
+        <tag>HEAD</tag>
         <url>https://github.com/tls-attacker/relaxed-dependency-convergence-rule</url>
     </scm>
 
